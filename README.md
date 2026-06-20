@@ -14,9 +14,11 @@ https://rickandmortyapi.com/api
 ## Quickstart (5 Minuten)
 
 ```bash
+git clone <repo-url>
+cd Rick-und-Morty
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r backend/requirements.txt
+pip install -r Rick-und-Morty/backend/requirements.txt
 ```
 
 Wichtiger Hinweis zu Secrets:
