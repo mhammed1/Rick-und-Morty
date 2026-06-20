@@ -4,7 +4,6 @@ __pycache__/
 *.pyd
 .venv/
 venv/
-.env
 .DS_Store
 backend/data/*.db
 backend/data/chroma/

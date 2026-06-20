@@ -1,6 +1,6 @@
 # Interdimensional Oracle
 
-Kurzer MVP fuer die AI Full-Stack Aufgabe. Der Agent beantwortet Fragen zum Rick and Morty Universe auf Basis von Daten aus:
+Kurzer MVP für die AI Full-Stack Aufgabe. Der Agent beantwortet Fragen zum Rick and Morty Universe auf Basis von Daten aus:
 https://rickandmortyapi.com/api
 
 ## Stack
@@ -19,12 +19,23 @@ source .venv/bin/activate
 pip install -r backend/requirements.txt
 ```
 
-`.env` im Projekt-Root anlegen:
+Wichtiger Hinweis zu Secrets:
+
+- Die Datei `.env` ist im Repository enthalten, aber nur mit Platzhaltern.
+- Für den lokalen Start brauchst du einen API-Key von Groq und einen API-Key von Jina.
+
+API-Keys erstellen:
+
+- Groq: Account anlegen und API-Key erzeugen unter https://console.groq.com/
+- Jina AI: Account anlegen und API-Key erzeugen unter https://jina.ai/
+
+Dann `.env` im Projekt-Root mit deinen Keys befüllen:
 
 ```bash
 JINA_API_KEY=
 GROQ_API_KEY=
 GROQ_MODEL=llama-3.1-8b-instant
+JINA_EMBEDDING_MODEL=jina-embeddings-v5-text-small
 MIN_RELEVANCE_CONFIDENCE=60
 ```
 
@@ -57,13 +68,13 @@ curl -X POST http://127.0.0.1:8000/api/chat -H "Content-Type: application/json" 
 - Rein vektorbasierte Suche, kein Hybrid Retrieval.
 - Kein Re Ranking.
 - Episode Dokumente enthalten aktuell nur Character count, nicht die volle Charakterliste.
-- LLM Antworten koennen in Grenzfaellen variieren.
+- LLM Antworten können in Grenzfällen variieren.
 
-## Naechste Schritte
+## Nächste Schritte
 
 - Hybrid Retrieval (Vektor + Keyword)
 - Re Ranking
 - Output Validator gegen Kontext
 - Optional: Feedback Logging, Browse Modus
 - Streaming-Antworten
-- Stokastik in confidenz
+- Stochastik in Konfidenz

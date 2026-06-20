@@ -35,7 +35,7 @@ ENTITY_TYPES = ("character", "episode", "location")
 
 
 def collection() -> chromadb.Collection:
-    """Gibt die persistente Chroma-Collection des Oracle zurueck."""
+    """Gibt die persistente Chroma-Collection des Oracle zurück."""
     CHROMA_DIR.mkdir(parents=True, exist_ok=True)
     client = chromadb.PersistentClient(
         path=str(CHROMA_DIR),
@@ -59,7 +59,7 @@ def _groq_api_key() -> str:
 
 
 def embed_texts(texts: list[str], task: str) -> list[list[float]]:
-    """Erzeugt Jina-Embeddings und gibt Vektoren in Eingabereihenfolge zurueck."""
+    """Erzeugt Jina-Embeddings und gibt Vektoren in Eingabereihenfolge zurück."""
     if not texts:
         return []
 
@@ -85,7 +85,7 @@ def embed_texts(texts: list[str], task: str) -> list[list[float]]:
 
 
 def fetch_all(endpoint: str) -> list:
-    """Laedt alle paginierten Ergebnisse fuer einen API-Endpunkt."""
+    """Lädt alle paginierten Ergebnisse für einen API-Endpunkt."""
     items: list = []
     url = f"{API_BASE}/{endpoint}"
     while url:
@@ -246,7 +246,7 @@ def ingest_data() -> dict:
 
 
 def run_chat(payload: dict) -> dict:
-    """Fuehrt Retrieval und Guardrail-geschuetzte LLM-Antwort fuer Chat-Payload aus."""
+    """Führt Retrieval und Guardrail-geschützte LLM-Antwort für Chat-Payload aus."""
     query = str(payload.get("message", "")).strip()
     if not query:
         raise ValueError("message must not be empty")
