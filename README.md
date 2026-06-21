@@ -1,6 +1,6 @@
 # Interdimensional Oracle
 
-Kurzer MVP für die AI Full-Stack Aufgabe. Der Agent beantwortet Fragen zum Rick and Morty Universe auf Basis von Daten aus:
+Kurzer MVP für die Aufgabe. Der Agent beantwortet Fragen zum Rick and Morty Universe auf Basis von Daten aus:
 https://rickandmortyapi.com/api
 
 ## Stack
