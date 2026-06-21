@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import time
 from pathlib import Path
 
@@ -32,6 +33,7 @@ STRICT RULES:
 """
 
 ENTITY_TYPES = ("character", "episode", "location")
+NO_INFO_ANSWER = "Ich habe keine Informationen dazu in der Rick & Morty Wissensdatenbank."
 
 
 def _chroma_client() -> chromadb.PersistentClient:
@@ -162,6 +164,64 @@ def _build_sources(metas: list, distances: list) -> list:
     return sources
 
 
+def _extract_episode_id(query: str) -> int | None:
+    """Extrahiert eine explizite Episode-ID aus Formulierungen wie 'episode 11' oder 'S01E11'."""
+    lowered = query.lower()
+
+    direct_match = re.search(r"\b(?:episode|episod|folge)\s*(\d{1,3})\b", lowered)
+    if direct_match:
+        value = int(direct_match.group(1))
+        return value if value > 0 else None
+
+    code_match = re.search(r"\bs\d{1,2}e(\d{1,2})\b", lowered)
+    if code_match:
+        value = int(code_match.group(1))
+        return value if value > 0 else None
+
+    return None
+
+
+def _find_episode_doc_by_id(episode_id: int) -> tuple[str, dict] | None:
+    """Findet das Dokument einer Episode anhand der URL-ID aus Chroma-Metadaten."""
+    if episode_id <= 0:
+        return None
+
+    result = collection().get(
+        where={"type": "episode"},
+        include=["documents", "metadatas"],
+    )
+    docs = result.get("documents") or []
+    metas = result.get("metadatas") or []
+
+    suffix = f"/episode/{episode_id}"
+    for doc, meta in zip(docs, metas):
+        if (meta or {}).get("url", "").endswith(suffix):
+            return doc, meta
+    return None
+
+
+def _inject_structured_hits(query: str, docs: list, metas: list, distances: list) -> tuple[list, list, list]:
+    """Priorisiert exakte strukturierte Treffer (z. B. Episode-ID) vor Vektor-Treffern."""
+    episode_id = _extract_episode_id(query)
+    if episode_id is None:
+        return docs, metas, distances
+
+    episode_doc = _find_episode_doc_by_id(episode_id)
+    if episode_doc is None:
+        return docs, metas, distances
+
+    doc, meta = episode_doc
+    url = meta.get("url", "")
+    existing_urls = {m.get("url", "") for m in metas}
+    if url in existing_urls:
+        return docs, metas, distances
+
+    merged_docs = [doc] + docs
+    merged_metas = [meta] + metas
+    merged_distances = [0.0] + [float(x) for x in distances]
+    return merged_docs[:6], merged_metas[:6], merged_distances[:6]
+
+
 def _query_docs(query: str) -> tuple:
     """Erzeugt Query-Embedding und holt passende Top-Dokumente aus Chroma."""
     query_embedding = embed_texts([query], task="retrieval.query")
@@ -240,6 +300,7 @@ def run_chat(payload: dict) -> dict:
         raise ValueError("message must not be empty")
 
     docs, metas, distances = _query_docs(query)
+    docs, metas, distances = _inject_structured_hits(query, docs, metas, distances)
     score = confidence([float(x) for x in distances], len(docs))
 
     if not docs or score < MIN_RELEVANCE_CONFIDENCE:
@@ -265,6 +326,16 @@ def run_chat(payload: dict) -> dict:
         ],
     )
     answer = response.choices[0].message.content or "Ich konnte keine Antwort generieren."
+
+    # Falls das Modell trotz vorhandener Treffer explizit "keine Informationen" meldet,
+    # geben wir konsistent eine Guardrail-Antwort ohne Quellen zurück.
+    if answer.strip() == NO_INFO_ANSWER:
+        return {
+            "answer": NO_INFO_ANSWER,
+            "sources": [],
+            "confidence": score,
+            "guardrail": "model_no_info_response",
+        }
 
     return {
         "answer": answer,
