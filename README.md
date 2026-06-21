@@ -67,7 +67,6 @@ curl -X POST http://127.0.0.1:8000/api/chat -H "Content-Type: application/json" 
 
 - Rein vektorbasierte Suche, kein Hybrid Retrieval.
 - Kein Re Ranking.
-- Episode Dokumente enthalten aktuell nur Character count, nicht die volle Charakterliste.
 - LLM Antworten können in Grenzfällen variieren.
 
 ## Nächste Schritte
